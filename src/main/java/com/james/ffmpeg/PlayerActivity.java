@@ -1,6 +1,7 @@
 package com.james.ffmpeg;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -25,6 +26,7 @@ import android.widget.VideoView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -80,18 +82,33 @@ public class PlayerActivity extends AppCompatActivity {
         {
             if(data != null) {
                 uri = data.getData();
-                String path = Utils.getRealPathFromURI(this, uri);
-                Log.d(TAG, uri.toString());
-                Log.d(TAG, uri.getPath());
-                Log.d(TAG, DocumentsContract.getDocumentId(uri));
-                Log.d(TAG, Utils.getRemovableSDCardPath(this));
+                if(uri != null) {
+                    String path = Utils.getRealPathFromURI(this, uri);
+                    Log.d(TAG, uri.toString());
+                    Log.d(TAG, uri.getPath());
+                    Log.d(TAG, DocumentsContract.getDocumentId(uri));
+                    Log.d(TAG, Utils.getRemovableSDCardPath(this));
+                }
 
 //                path = "/sdcard/Download/output.mp4";
 //                path = "/sdcard/Download/20191014174741back.mp4";
-                SimpleExoPlayer player = new SimpleExoPlayer.Builder(getApplicationContext()).build();
-                SimpleExoPlayer player_right = new SimpleExoPlayer.Builder(getApplicationContext()).build();
-                SimpleExoPlayer player_left = new SimpleExoPlayer.Builder(getApplicationContext()).build();
-                SimpleExoPlayer player3 = new SimpleExoPlayer.Builder(getApplicationContext()).build();
+
+                /* Instantiate a DefaultLoadControl.Builder. */
+                DefaultLoadControl.Builder builder = new
+                        DefaultLoadControl.Builder();
+
+                /*How many milliseconds of media data to buffer at any time. */
+                final int loadControlBufferMs = 65000; /* This is 50000 milliseconds in ExoPlayer 2.9.6 */
+                /* Configure the DefaultLoadControl to use the same value for */
+                DefaultLoadControl loadControl = builder.setBufferDurationsMs(
+                        loadControlBufferMs,
+                        loadControlBufferMs,
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS).setBackBuffer(loadControlBufferMs,true).createDefaultLoadControl();
+                SimpleExoPlayer player = new SimpleExoPlayer.Builder(getApplicationContext()).setLoadControl(loadControl).build();
+                SimpleExoPlayer player_right = new SimpleExoPlayer.Builder(getApplicationContext()).setLoadControl(loadControl).build();
+                SimpleExoPlayer player_left = new SimpleExoPlayer.Builder(getApplicationContext()).setLoadControl(loadControl).build();
+                SimpleExoPlayer player3 = new SimpleExoPlayer.Builder(getApplicationContext()).setLoadControl(loadControl).build();
                 videoView.setPlayer(player);
                 videoView_left.setPlayer(player_left);
                 videoView_right.setPlayer(player_right);
@@ -178,13 +195,51 @@ public class PlayerActivity extends AppCompatActivity {
                 DefaultDataSourceFactory mediaDataSourceFactory2 = new DefaultDataSourceFactory(getApplicationContext(), Util.getUserAgent(getApplicationContext(), BACK));
                 DefaultDataSourceFactory mediaDataSourceFactory3 = new DefaultDataSourceFactory(getApplicationContext(), Util.getUserAgent(getApplicationContext(), RIGHT));
                 DefaultDataSourceFactory mediaDataSourceFactory4 = new DefaultDataSourceFactory(getApplicationContext(), Util.getUserAgent(getApplicationContext(), LEFT));
+                String fileName = null;
+                if(uri !=null) {
+                    uris = getUris(getApplicationContext(), uri);
+                    String temp[] = uris[0].getPath().split("/");
+                    fileName = temp[temp.length-1]; ;
+                }
+                else {
+                    ClipData clipData = data.getClipData();
+                    uris = new Uri[4];
+                    for(int i = 0; i < clipData.getItemCount(); i++)
+                    {
+                        ClipData.Item path = clipData.getItemAt(i);
+                        Log.i(TAG,path.toString());
+                        if(path.getUri().getPath().toLowerCase().endsWith(".mp4") == false) {
+                            Cursor cursor = getContentResolver().query(path.getUri(), null, null, null, null);
+                            int columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                            cursor.moveToFirst();
+//                        Toast.makeText(mContext.getApplicationContext(), cursor.getString(columnIndex), Toast.LENGTH_LONG).show();
+                            fileName = cursor.getString(columnIndex);
+                            if (fileName.contains(FRONT))
+                                uris[FRONT_ID] = path.getUri();
+                            if (fileName.contains(BACK))
+                                uris[BACK_ID] = path.getUri();
+                            if (fileName.contains(RIGHT))
+                                uris[RIGHT_ID] = path.getUri();
+                            if (fileName.contains(LEFT))
+                                uris[LEFT_ID] = path.getUri();
+                        }
+                        else {
+                            if (path.getUri().toString().contains(FRONT))
+                                uris[FRONT_ID] = path.getUri();
+                            if (path.getUri().toString().contains(BACK))
+                                uris[BACK_ID] = path.getUri();
+                            if (path.getUri().toString().contains(RIGHT))
+                                uris[RIGHT_ID] = path.getUri();
+                            if (path.getUri().toString().contains(LEFT))
+                                uris[LEFT_ID] = path.getUri();
+                            String[] temp= path.getUri().getPath().split("/");
+                            fileName = temp[temp.length-1];
+                        }
+                    }
+                }
 
-                uris = getUris(getApplicationContext(), uri);
-
-                String temp[] = uris[0].getPath().split("/");
-                String filename = temp[temp.length-1];
-                int last = filename.lastIndexOf("-");
-                timeTextView.setText(filename.substring(0, last));
+                int last = fileName.lastIndexOf("-");
+                timeTextView.setText(fileName.substring(0, last));
                 frontMediaSource = new ProgressiveMediaSource.Factory(mediaDataSourceFactory).createMediaSource(uris[FRONT_ID]);
                 backMediaSource = new ProgressiveMediaSource.Factory(mediaDataSourceFactory2).createMediaSource(uris[BACK_ID]);
                 rightMediaSource = new ProgressiveMediaSource.Factory(mediaDataSourceFactory3).createMediaSource(uris[RIGHT_ID]);
@@ -383,6 +438,7 @@ public class PlayerActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("video/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(intent, MainActivity.REQUEST_PLAY);
     }
 

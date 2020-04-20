@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -62,8 +63,19 @@ public class OnePlayerActivity extends AppCompatActivity {
                 Log.d(TAG, uri.getPath());
                 Log.d(TAG, DocumentsContract.getDocumentId(uri));
                 Log.d(TAG, Utils.getRemovableSDCardPath(this));
+                /* Instantiate a DefaultLoadControl.Builder. */
+                DefaultLoadControl.Builder builder = new
+                        DefaultLoadControl.Builder();
 
-                SimpleExoPlayer player = new SimpleExoPlayer.Builder(getApplicationContext()).build();
+                /*How many milliseconds of media data to buffer at any time. */
+                final int loadControlBufferMs = 65000; /* This is 50000 milliseconds in ExoPlayer 2.9.6 */
+                /* Configure the DefaultLoadControl to use the same value for */
+                DefaultLoadControl loadControl = builder.setBufferDurationsMs(
+                        loadControlBufferMs,
+                        loadControlBufferMs,
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS).setBackBuffer(loadControlBufferMs,true).createDefaultLoadControl();
+                SimpleExoPlayer player = new SimpleExoPlayer.Builder(getApplicationContext()).setLoadControl(loadControl).build();
                 videoView.setPlayer(player);
 
                 videoView.setFastForwardIncrementMs(2000);

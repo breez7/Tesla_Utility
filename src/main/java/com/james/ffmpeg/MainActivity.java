@@ -109,47 +109,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void requestEncoding(Context context, Button button,Uri uri){
-        String filePath = Utils.getRealPathFromURI(context,uri);
-        if(filePath == null) {
-            try {
-//                        ParcelFileDescriptor pfd = this.getContentResolver().openFileDescriptor(uri, "r");
-//                        FileInputStream fis = new FileInputStream(pfd.getFileDescriptor());
-                InputStream is = context.getContentResolver().openInputStream(uri);
 
-                Toast.makeText(context.getApplicationContext(), uri.getPath(), Toast.LENGTH_LONG).show();
-                String[] temp = uri.getPath().split("/");
-                String fileName = temp[temp.length -1];
-                if(uri.getPath().toLowerCase().endsWith(".mp4") == false) {
-                    Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
-                    int columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    cursor.moveToFirst();
-                    Toast.makeText(context.getApplicationContext(), cursor.getString(columnIndex), Toast.LENGTH_LONG).show();
-                    fileName = cursor.getString(columnIndex);
-                }
-                filePath = teslaDashCamPath + fileName;
 
-                FileOutputStream fos = new FileOutputStream(new File(filePath));
-                byte[] buf = new byte[1024];
-                int len = 0;
-                while((len = is.read(buf)) > 0 ){
-                    fos.write(buf, 0, len);
-                }
-                fos.close();
-                is.close();
-//
-//                        FileChannel inFileChannel = fis.getChannel();
-//                        FileChannel outFileChannel = fos.getChannel();
-//                        long size = inFileChannel.size();
-//                        inFileChannel.transferTo(0, size, outFileChannel);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        Log.d("james_ffmpeg", filePath);
-
-        new EncodingTask(context, button).execute(filePath);
+        new EncodingTask(context, button).execute(uri);
     }
 
     private static class EncodingTask extends AsyncTask {
@@ -178,7 +140,47 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Object doInBackground(Object[] objects) {
             publishProgress(objects);
-            return encoding((String)objects[0]);
+            Uri uri = (Uri)objects[0];
+            String filePath = Utils.getRealPathFromURI(mContext,uri);
+            if(filePath == null) {
+                try {
+//                        ParcelFileDescriptor pfd = this.getContentResolver().openFileDescriptor(uri, "r");
+//                        FileInputStream fis = new FileInputStream(pfd.getFileDescriptor());
+                    InputStream is = mContext.getContentResolver().openInputStream(uri);
+
+//                    Toast.makeText(mContext.getApplicationContext(), uri.getPath(), Toast.LENGTH_LONG).show();
+                    String[] temp = uri.getPath().split("/");
+                    String fileName = temp[temp.length -1];
+                    if(uri.getPath().toLowerCase().endsWith(".mp4") == false) {
+                        Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
+                        int columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        cursor.moveToFirst();
+//                        Toast.makeText(mContext.getApplicationContext(), cursor.getString(columnIndex), Toast.LENGTH_LONG).show();
+                        fileName = cursor.getString(columnIndex);
+                    }
+                    filePath = teslaDashCamPath + fileName;
+
+                    FileOutputStream fos = new FileOutputStream(new File(filePath));
+                    byte[] buf = new byte[1024];
+                    int len = 0;
+                    while((len = is.read(buf)) > 0 ){
+                        fos.write(buf, 0, len);
+                    }
+                    fos.close();
+                    is.close();
+//
+//                        FileChannel inFileChannel = fis.getChannel();
+//                        FileChannel outFileChannel = fos.getChannel();
+//                        long size = inFileChannel.size();
+//                        inFileChannel.transferTo(0, size, outFileChannel);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            Log.d("james_ffmpeg", filePath);
+            return encoding(filePath);
         }
     }
     View.OnClickListener encoding_listener = new View.OnClickListener() {
