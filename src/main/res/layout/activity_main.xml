@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/encoding_button"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:text="add\nTimestamp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/play_button"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:text="play\n4 channel(front,back,right,left)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/encoding_button" />
+    <Button
+        android:id="@+id/play_one_button"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:text="play\n1 channel(any)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/play_button" />
+</androidx.constraintlayout.widget.ConstraintLayout>
