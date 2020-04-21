@@ -44,13 +44,16 @@ import static com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS;
 
 public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_EXTERNAL_STORAGE = 1;
+    public static final int REQUEST_ACCESS_LOCATION = 1;
     public static String[] PERMISSIONS_ALL = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
     };
     Button encodingButton;
     Button playButton;
     Button oneplayButton;
+    Button speedButton;
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,19 +73,28 @@ public class MainActivity extends AppCompatActivity {
                     PERMISSIONS_ALL,
                     REQUEST_EXTERNAL_STORAGE);
         }
-
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, PERMISSIONS_ALL, REQUEST_ACCESS_LOCATION);
+        }
 //        StorageManager storageManager = (StorageManager)getSystemService(Context.STORAGE_SERVICE);
 //        List<StorageVolume> storageVolumes = storageManager.getStorageVolumes();
 //        StorageVolume primaryVolume = storageManager.getPrimaryStorageVolume();
 //        Intent intent = primaryVolume.createOpenDocumentTreeIntent();
 //        startActivityForResult(intent, 1);
-//
         encodingButton = findViewById(R.id.encoding_button);
         encodingButton.setOnClickListener(encoding_listener);
         playButton = findViewById(R.id.play_button);
         playButton.setOnClickListener(play_listener);
         oneplayButton = findViewById(R.id.play_one_button);
         oneplayButton.setOnClickListener(oneplay_listener);
+        speedButton = findViewById(R.id.speed_button);
+        speedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SpeedActivity.class);
+                startActivity(intent);
+            }
+        });
         File dir = new File(teslaDashCamPath);
         if(!dir.exists()){
             dir.mkdir();
