@@ -2,6 +2,7 @@ package com.james.ffmpeg;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -10,10 +11,12 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.PlaybackParams;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +28,7 @@ import java.io.InputStream;
 public class SpeedActivity extends AppCompatActivity implements LocationListener, Runnable {
     LocationManager locationManager;
     TextView speed_tv;
+    public static final String TAG = "james_speed";
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +49,18 @@ public class SpeedActivity extends AppCompatActivity implements LocationListener
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, this);
         speed_tv = findViewById(R.id.speed_text);
         keep= true;
+
+
         initSound();
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "onStart");
+        if(getIntent().getAction() == Intent.ACTION_VIEW){
+            handleDeepLink(getIntent().getData());
+        }
+        super.onStart();
     }
 
     byte[] buffer;
@@ -91,8 +106,12 @@ public class SpeedActivity extends AppCompatActivity implements LocationListener
         speed_tv.setText(String.format("%d km/h", (int)speed_km));
         float speed = 1 + speed_km / 50;
         float pitch = 1 + speed_km / 50;
-        audioTrack.setPlaybackParams(params.setSpeed(speed));
-        audioTrack.setPlaybackParams(params.setPitch(pitch));
+        try {
+            audioTrack.setPlaybackParams(params.setSpeed(speed));
+            audioTrack.setPlaybackParams(params.setPitch(pitch));
+        }catch(Exception e){
+            return;
+        }
 
     }
 
@@ -129,7 +148,9 @@ public class SpeedActivity extends AppCompatActivity implements LocationListener
     @Override
     protected void onDestroy() {
         keep = false;
-        audioTrack.release();
+        if(audioTrack != null) {
+            audioTrack.release();
+        }
         super.onDestroy();
     }
 
@@ -141,6 +162,24 @@ public class SpeedActivity extends AppCompatActivity implements LocationListener
             while(keep){
                 audioTrack.write(buffer, 0, buffer.length);
             }
+        }
+    }
+
+    class DeepLink{
+        public static final String START = "/start";
+        public static final String STOP = "/stop";
+        public static final String OPEN = "/open";
+    };
+    private void handleDeepLink(Uri data) {
+        Log.d(TAG, data.toString());
+        Log.d(TAG, data.getPath());
+        switch(data.getPath()) {
+            case DeepLink.OPEN:
+                Log.d(TAG, "[start]deeplink " + data.getPath());
+                break;
+            default:
+                Log.d(TAG, "[default]deeplink " + data.getPath());
+
         }
     }
 }

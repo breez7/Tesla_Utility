@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_main);
 //        requestPermissions();
 
@@ -99,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         if(!dir.exists()){
             dir.mkdir();
         }
+
+
     }
 
 
@@ -253,4 +257,9 @@ public class MainActivity extends AppCompatActivity {
         }
         return result;
     }
+
+
+
+
+
 }

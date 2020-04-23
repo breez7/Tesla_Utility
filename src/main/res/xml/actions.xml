@@ -1,0 +1,27 @@
+<?xml version ="1.0" encoding ="utf-8"?><!--  Learn More about how to use App Actions: https://developer.android.com/guide/actions/index.html -->
+<actions>
+    <action intentName="actions.intent.OPEN_APP_FEATURE">
+        <parameter name="feature">
+            <entity-set-reference entitySetId="FeatureEntitySet"/>
+        </parameter>
+        <fulfillment urlTemplate="https://ffmpeg.james.com/open{?featureType}">
+            <parameter-mapping
+                intentParameter="feature"
+                urlParameter="featureType" />
+        </fulfillment>
+    </action>
+    <action intentName="actions.intent.START_EXERCISE">
+        <fulfillment urlTemplate="https://ffmpeg.james.com/start{?exerciseType}">
+            <parameter-mapping
+                intentParameter="exercise.name"
+                urlParameter="exerciseType" />
+        </fulfillment>
+    </action>
+    <action intentName="actions.intent.STOP_EXERCISE">
+        <fulfillment urlTemplate="https://ffmpeg.james.com/stop" />
+    </action>
+    <entity-set entitySetId="FeatureEntitySet">
+        <entity identifier="FEATUREONE" name="first feature" />
+        <entity identifier="FEATURETWO" name="second feature" />
+    </entity-set>
+</actions>
